@@ -1,0 +1,5 @@
+<launch>
+    <include file="$(find project_simulation)/launch/include/gmapping.launch" />
+    <include file="$(find project_simulation)/launch/include/move_base.launch"/>
+    <rosparam file="$(find project_simulation)/config/base_local_planner_params.yaml" command="load" ns="move_base_node"/>
+</launch>

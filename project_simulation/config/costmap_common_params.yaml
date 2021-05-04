@@ -1,0 +1,17 @@
+map_type: costmap
+transform_tolerance: 10
+obstacle_range: 15
+raytrace_range: 15
+robot_radius: 0.7
+inflation_radius: 0.2
+track_unknown_space: false
+footprint_clearing_enabled: true
+observation_sources: base_scan
+meter_scoring: true
+
+base_scan: {sensor_frame: kinect_link,
+            data_type: LaserScan,
+            topic: /scan,
+            marking: true,
+            clearing: true,
+}

@@ -1,0 +1,30 @@
+... logging to /home/beta/.ros/log/bcda72bc-ac22-11eb-961c-405bd81a8a1b/roslaunch-MagicBook-Beta-8170.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;roscore
+[1mstarted roslaunch server http://MagicBook-Beta:37793/[0m
+ros_comm version 1.14.10
+
+
+SUMMARY
+========
+
+PARAMETERS
+ * /rosdistro: melodic
+ * /rosversion: 1.14.10
+
+NODES
+
+auto-starting new master
+[1mprocess[master]: started with pid [8181][0m
+[1mROS_MASTER_URI=http://MagicBook-Beta:11311/[0m
+]2;roscore http://MagicBook-Beta:11311/
+[1msetting /run_id to bcda72bc-ac22-11eb-961c-405bd81a8a1b[0m
+[1mprocess[rosout-1]: started with pid [8192][0m
+started core service [/rosout]
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

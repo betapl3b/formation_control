@@ -1,0 +1,27 @@
+DWAPlannerROS:
+    acc_lim_x: 2
+    acc_lim_y: 2
+    acc_lim_theta: 1.5
+    max_vel_x: 1
+    min_vel_x: 0.5
+    max_rotational_vel: 1
+    min_in_place_rotational_vel: 0.1
+    escape_vel: -0.1
+    holonomic_robot: false
+    meter_scoring: true
+
+    heading_scoring: true
+
+    xy_goal_tolerance: 0.1
+    yaw_goal_tolerance: 5
+
+    sim_time: 1.0
+    sim_granularity: 0.2
+    vx_samples: 6
+    vtheta_samples: 20
+
+    occdist_scale: 0.05
+    heading_lookahead: 0.325
+    dwa: true
+
+    oscillation_reset_dist: 0.05

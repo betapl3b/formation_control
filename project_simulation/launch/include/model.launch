@@ -1,0 +1,63 @@
+<launch>
+    <!--    <node name="kinect_frame" pkg="tf2_ros" type="static_transform_publisher"-->
+    <!--          args="0.02 0 0.75 0 0 0 base_link kinect_link"/>-->
+
+    <!--    <node name="platform_frame" pkg="tf2_ros" type="static_transform_publisher"-->
+    <!--          args="-0.05 0 0.13 0 0 0 base_link platform_link"/>-->
+
+    <!--    <node name="bridge_frame" pkg="tf2_ros" type="static_transform_publisher"-->
+    <!--          args="-0.05 0 0.13 0 0 1.5707 base_link command_bridge_link"/>-->
+    <!---->
+<!--    <param name="tf_prefix" value="robot1"/>-->
+<!--    <node name="wheel0_frame" pkg="tf2_ros" type="static_transform_publisher"-->
+<!--          args="0.065 0.11 0.04 0 0 1.0466 base_link wheel0_link"/>-->
+<!---->
+<!--    <node name="wheel1_frame" pkg="tf2_ros" type="static_transform_publisher"-->
+<!--          args="-0.13 0 0.04 0 0 0 base_link wheel1_link"/>-->
+<!---->
+<!--    <node name="wheel2_frame" pkg="tf2_ros" type="static_transform_publisher"-->
+<!--          args="0.065 -0.11 0.04 0 0 -1.0466 base_link wheel2_link"/>-->
+
+    <param name="robot_description"
+    command="$(find xacro)/xacro.py '$(find robotino_description)/urdf/robotino_custom.urdf.xacro'"/>
+
+    <node
+    name="robotino_spawn0"
+    pkg="gazebo_ros"
+    type="spawn_model"
+    output="screen"
+    args="-urdf -param robot_description -model robot0 -x 1 -y -0.3 -robot_namespace robot0"
+    />
+    <node
+    name="robotino_spawn1"
+    pkg="gazebo_ros"
+    type="spawn_model"
+    output="screen"
+    args="-urdf -param robot_description -model robot1 -x -1 -y -0.3 -robot_namespace robot1"
+    />
+
+    <node
+    name="robotino_spawn2"
+    pkg="gazebo_ros"
+    type="spawn_model"
+    output="screen"
+    args="-urdf -param robot_description -model robot2 -x 1 -y 0.5 -robot_namespace robot2"
+    />
+
+    <node
+    name="robotino_spawn3"
+    pkg="gazebo_ros"
+    type="spawn_model"
+    output="screen"
+    args="-urdf -param robot_description -model robot3 -x 2 -y 1 -robot_namespace robot3"
+    />
+
+<!--    <node-->
+<!--    name="anglebracket_usb_frame"-->
+<!--    pkg="tf2_ros"-->
+<!--    type="static_transform_publisher"-->
+<!--    args="0.008 0 0.137 0 0 1.5707 base_link anglebracketusb_link"-->
+<!--    />-->
+
+
+</launch>

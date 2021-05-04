@@ -1,0 +1,55 @@
+material Markers/Marker4
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture 4.png
+      }
+    }
+  }
+}
+
+material Markers/Marker1
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture 1.png
+      }
+    }
+  }
+}
+
+material Markers/Marker2
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture 2.png
+      }
+    }
+  }
+}
+
+material Markers/Marker3
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture 3.png
+      }
+    }
+  }
+}

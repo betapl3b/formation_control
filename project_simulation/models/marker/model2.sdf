@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="textured_shapes">
+    <link name="box">
+      <pose>0 0 0 0 0 1.5707</pose>
+      <collision name="collision">
+        <geometry>
+          <box>
+            <size>1 0.5 1</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <box>
+            <size>1 0.05 1</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>model:///home/beta/catkin_ws/src/project_simulation/models/marker/materials/scripts</uri>
+            <uri>model:///home/beta/catkin_ws/src/project_simulation/models/marker/materials/textures</uri>
+            <name>Markers/Marker2</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
