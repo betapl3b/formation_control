@@ -2,26 +2,10 @@
 import roslaunch
 import time, sys, subprocess
 import rospy
-
-LAPLACIANS = {
-    "3": [
-        [0, 2, 2],
-        [2, 0, 2],
-        [2, 2, 0],
-    ],
-    "2": [
-        [0, 2],
-        [2, 0],
-    ]
-}
-LAMBDA0 = 0.8
-SIGMA0 = 0.1
-E = 0.6
-GAZEBO_PATH = "/opt/ros/melodic/share/gazebo_ros/launch/empty_world.launch"
-SPAWNER_LAUNCH = '/home/beta/catkin_ws/src/project_simulation/launch/spawner.launch'
+from config.constants import Controller, Formation, Path
 
 
-def startNodes():
+def start_nodes():
     print("Starting roslaunch Python script")
     print("Starting roscore")
     roscore_popen_file = open("roscore_popen.log", "w+")
@@ -36,7 +20,7 @@ def startNodes():
     # Creating launch
     launch = roslaunch.scriptapi.ROSLaunch()
     # firstly run gazebo.launch file
-    launch.parent = roslaunch.parent.ROSLaunchParent(uuid, [f"{GAZEBO_PATH}"])
+    launch.parent = roslaunch.parent.ROSLaunchParent(uuid, [f"{Path.GAZEBO_WORLD}"])
 
     print("Starting gazebo")
     launch.start()
@@ -50,7 +34,7 @@ def startNodes():
         raise e
     except Exception as e:
         raise e
-    laplacian = LAPLACIANS.get(form_number)
+    laplacian = Formation.LAPLACIANS.get(form_number)
     number_of_nodes = len(laplacian)
 
     print("Creating {} nodes...".format(number_of_nodes))
@@ -60,7 +44,7 @@ def startNodes():
     spawners = []
 
     for n in range(number_of_nodes):
-        spawners.append((SPAWNER_LAUNCH, [f"x:={coords[n][0]}", f"y:={coords[n][1]}", f"name:=robot{str(n)}"]))
+        spawners.append((Path.SPAWNER_LAUNCH, [f"x:={coords[n][0]}", f"y:={coords[n][1]}", f"name:=robot{str(n)}"]))
 
     launch.parent = roslaunch.parent.ROSLaunchParent(uuid, spawners)
     launch.start()
@@ -69,7 +53,7 @@ def startNodes():
         controller = roslaunch.core.Node(
             'project_simulation', 'controller_creator.py',
             name='controller', namespace=f'robot{n}',
-            args=f'"{n}" "{laplacian[n]}" "{LAMBDA0}" "{SIGMA0}" "{E}" "{True}"',
+            args=f'"{n}" "{laplacian[n]}" "{Controller.LAMBDA0}" "{Controller.SIGMA0}" "{Controller.E}" "{True}"',
         )
         launch.launch(controller)
 
@@ -85,4 +69,4 @@ def startNodes():
 
 
 if __name__ == "__main__":
-    startNodes()
+    start_nodes()
