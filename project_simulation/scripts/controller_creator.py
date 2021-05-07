@@ -32,9 +32,9 @@ def node_creator(robot):
     for index in [i for i, d in enumerate(DISTANCES) if d != 0]:
 
         compensator_x = control_utils.Compensator(LAMBDA0, SIGMA0, E, timestamp, parent=robot,
-                                                  name=f'{NUMBER} to {index} X compensator')
+                                                  name=f'{NUMBER}_to_{index}_X_compensator')
         compensator_y = control_utils.Compensator(LAMBDA0, SIGMA0, E, timestamp, parent=robot,
-                                                  name=f'{NUMBER} to {index} Y compensator')
+                                                  name=f'{NUMBER}_to_{index}_Y_compensator')
 
         neighbours.update({index: (compensator_x, compensator_y)})
 
@@ -43,15 +43,15 @@ def node_creator(robot):
         control_x = 0
         control_y = 0
         for index, comp_tuple in iter(neighbours.items()):
-            errors_i = robot.get_neighbour_error(index)
+            errors_i = robot.get_complex_error(index)
             control_x += comp_tuple[0].update_state(errors_i[0],
                                                     timestamp)  # * (neighbour.position_x - robot.position_x)
             control_y += comp_tuple[1].update_state(errors_i[1],
                                                     timestamp)  # * (neighbour.position_y - robot.position_y)
-        velocity.linear.x = control_utils.limit_robot_speed(-control_x)
-        velocity.linear.y = control_utils.limit_robot_speed(-control_y)
+        velocity.linear.x = -control_x
+        velocity.linear.y = -control_y
         robot.set_vel(velocity)
-        rospy.sleep(0.05)
+        rospy.sleep(0.01)
 
 
 # diag = math.sqrt(2)

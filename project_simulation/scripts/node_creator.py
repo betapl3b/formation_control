@@ -2,10 +2,38 @@
 import roslaunch
 import time, sys, subprocess
 import rospy
-from config.constants import Controller, Formation, Path
+from random import sample
+
+LAPLACIANS = {
+    "3": [
+        [0, 2, 2],
+        [2, 0, 2],
+        [2, 2, 0],
+    ],
+    "2": [
+        [0, 2],
+        [2, 0],
+    ],
+    "0": []
+}
+LAMBDA0 = 0.5
+SIGMA0 = 0.03
+E = 1
+GAZEBO_PATH = "/opt/ros/melodic/share/gazebo_ros/launch/empty_world.launch"
+SPAWNER_LAUNCH = '/home/beta/catkin_ws/src/project_simulation/launch/spawner.launch'
+
+process_running = True
 
 
-def start_nodes():
+class ProcessListener(roslaunch.pmon.ProcessListener):
+    global process_running
+
+    def process_died(self, name, exit_code):
+        global process_running
+        process_running = False
+        rospy.logwarn("%s died with code %s", name, exit_code)
+
+def startNodes():
     print("Starting roslaunch Python script")
     print("Starting roscore")
     roscore_popen_file = open("roscore_popen.log", "w+")
@@ -20,7 +48,7 @@ def start_nodes():
     # Creating launch
     launch = roslaunch.scriptapi.ROSLaunch()
     # firstly run gazebo.launch file
-    launch.parent = roslaunch.parent.ROSLaunchParent(uuid, [f"{Path.GAZEBO_WORLD}"])
+    launch.parent = roslaunch.parent.ROSLaunchParent(uuid, [f"{GAZEBO_PATH}"])
 
     print("Starting gazebo")
     launch.start()
@@ -34,17 +62,17 @@ def start_nodes():
         raise e
     except Exception as e:
         raise e
-    laplacian = Formation.LAPLACIANS.get(form_number)
+    laplacian = LAPLACIANS.get(form_number)
     number_of_nodes = len(laplacian)
 
     print("Creating {} nodes...".format(number_of_nodes))
     rospy.init_node('The_creator', anonymous=True)
-
-    coords = [[1, 1], [0, 1], [1, 0], [2, 1]]
+    coords = list(zip(sample(range(0,number_of_nodes*3,2), number_of_nodes), sample(range(0,number_of_nodes*3,2), number_of_nodes)))
+    # coords = [[1, 1], [0, 1], [1, 0], [2, 1],]
     spawners = []
 
     for n in range(number_of_nodes):
-        spawners.append((Path.SPAWNER_LAUNCH, [f"x:={coords[n][0]}", f"y:={coords[n][1]}", f"name:=robot{str(n)}"]))
+        spawners.append((SPAWNER_LAUNCH, [f"x:={coords[n][0]}", f"y:={coords[n][1]}", f"name:=robot{str(n)}"]))
 
     launch.parent = roslaunch.parent.ROSLaunchParent(uuid, spawners)
     launch.start()
@@ -53,20 +81,15 @@ def start_nodes():
         controller = roslaunch.core.Node(
             'project_simulation', 'controller_creator.py',
             name='controller', namespace=f'robot{n}',
-            args=f'"{n}" "{laplacian[n]}" "{Controller.LAMBDA0}" "{Controller.SIGMA0}" "{Controller.E}" "{True}"',
+            args=f'"{n}" "{laplacian[n]}" "{LAMBDA0}" "{SIGMA0}" "{E}" "{True}"',
         )
         launch.launch(controller)
 
     print("All done. Stopping roslaunch.")
-    try:
-        while True:
-            continue
-    except Exception as e:
-        print(f"Got error: {e}")
-        launch.stop()
-        print("Stopping roscore")
-        roscore.terminate()
+    while process_running:
+        continue
 
+    launch.shutdown()
 
 if __name__ == "__main__":
-    start_nodes()
+    startNodes()
