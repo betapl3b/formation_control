@@ -1,4 +1,0 @@
-[31mRLException: roscore cannot run as another roscore/master is already running. 
-Please kill other roscore/master processes before relaunching.
-The ROS_MASTER_URI is http://MagicBook-Beta:11311/[0m
-[31mThe traceback for the exception was written to the log file[0m

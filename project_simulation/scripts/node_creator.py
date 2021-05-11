@@ -20,6 +20,7 @@ LAMBDA0 = 0.5
 SIGMA0 = 0.03
 E = 1
 GAZEBO_PATH = "/opt/ros/melodic/share/gazebo_ros/launch/empty_world.launch"
+WORLD_PATH = "/home/beta/catkin_ws/src/project_simulation/worlds/ml_plugin_room.world"
 SPAWNER_LAUNCH = '/home/beta/catkin_ws/src/project_simulation/launch/spawner.launch'
 
 process_running = True
@@ -48,7 +49,10 @@ def startNodes():
     # Creating launch
     launch = roslaunch.scriptapi.ROSLaunch()
     # firstly run gazebo.launch file
-    launch.parent = roslaunch.parent.ROSLaunchParent(uuid, [f"{GAZEBO_PATH}"])
+    run_gazebo_cli = [f'{GAZEBO_PATH}', f'world_name:={WORLD_PATH}', 'paused:=false', 'use_sim_time:=true']
+    gazebo_args = run_gazebo_cli[1:]
+    roslaunch_gazebo = [(roslaunch.rlutil.resolve_launch_arguments(run_gazebo_cli)[0], gazebo_args)]
+    launch.parent = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_gazebo)
 
     print("Starting gazebo")
     launch.start()
@@ -68,7 +72,7 @@ def startNodes():
     print("Creating {} nodes...".format(number_of_nodes))
     rospy.init_node('The_creator', anonymous=True)
     coords = list(zip(sample(range(0,number_of_nodes*3,2), number_of_nodes), sample(range(0,number_of_nodes*3,2), number_of_nodes)))
-    # coords = [[1, 1], [0, 1], [1, 0], [2, 1],]
+    coords = [[1, 1], [0, 1], [1, 0], [2, 1],]
     spawners = []
 
     for n in range(number_of_nodes):

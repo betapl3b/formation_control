@@ -5,7 +5,7 @@
     <arg name="y" default="0"/>
 
     <param name="robot_description"
-    command="$(find xacro)/xacro.py '$(find robotino_description)/urdf/robotino_custom.urdf.xacro'"/>
+    command="$(find xacro)/xacro '$(find robotino_description)/urdf/robotino_custom.urdf.xacro'"/>
 
     <node
       name="robotino_spawn_$(arg name)"
