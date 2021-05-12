@@ -15,18 +15,9 @@ LOG_COMPENSATOR = bool(sys.argv[6])
 rospy.loginfo(f'Params: {NUMBER}, {DISTANCES}, {LAMBDA0}, {SIGMA0}, {E}, {LOG_COMPENSATOR}')
 
 
-def time_callback(clock_response):
-    global timestamp
-    timestamp = float(clock_response.clock.secs) + float(clock_response.clock.nsecs) * 0.000000001
-    if timestamp % 1 == 0:
-        print(timestamp)
-
-
 def node_creator(robot):
     global timestamp
     timestamp = rospy.get_time()
-    compensators_x = []
-    compensators_y = []
     velocity = Twist()
     neighbours = {}
     for index in [i for i, d in enumerate(DISTANCES) if d != 0]:
@@ -51,11 +42,8 @@ def node_creator(robot):
         velocity.linear.x = -control_x
         velocity.linear.y = -control_y
         robot.set_vel(velocity)
-        rospy.sleep(0.01)
+        rospy.sleep(0.001)
 
-
-# diag = math.sqrt(2)
-# rospy.Subscriber('/clock', Clock, time_callback, queue_size=5)
 
 if __name__ == "__main__":
     rospy.init_node(f'robot_{NUMBER}_controller')

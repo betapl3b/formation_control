@@ -4,6 +4,7 @@ import time, sys, subprocess
 import rospy
 from random import sample
 
+CORE = True
 LAPLACIANS = {
     "3": [
         [0, 2, 2],
@@ -34,13 +35,15 @@ class ProcessListener(roslaunch.pmon.ProcessListener):
         process_running = False
         rospy.logwarn("%s died with code %s", name, exit_code)
 
-def startNodes():
-    print("Starting roslaunch Python script")
-    print("Starting roscore")
-    roscore_popen_file = open("roscore_popen.log", "w+")
-    roscore_popen_err_file = open("roscore_popen_err.log", "w+")
-    roscore = subprocess.Popen('roscore', stdout=roscore_popen_file, stderr=roscore_popen_err_file)
-    time.sleep(2)  # wait a bit to be sure the roscore is really launched
+
+def start_nodes():
+    if CORE:
+        print("Starting roslaunch Python script")
+        print("Starting roscore")
+        roscore_popen_file = open("roscore_popen.log", "w+")
+        roscore_popen_err_file = open("roscore_popen_err.log", "w+")
+        roscore = subprocess.Popen('roscore', stdout=roscore_popen_file, stderr=roscore_popen_err_file)
+        time.sleep(2)  # wait a bit to be sure the roscore is really launched
 
     print("Starting roslaunch")
     uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
@@ -71,8 +74,8 @@ def startNodes():
 
     print("Creating {} nodes...".format(number_of_nodes))
     rospy.init_node('The_creator', anonymous=True)
-    coords = list(zip(sample(range(0,number_of_nodes*3,2), number_of_nodes), sample(range(0,number_of_nodes*3,2), number_of_nodes)))
-    coords = [[1, 1], [0, 1], [1, 0], [2, 1],]
+    coords = list(zip(sample(range(0,number_of_nodes*2,1), number_of_nodes), sample(range(0,number_of_nodes*2,1), number_of_nodes)))
+    # coords = [[1, 1], [0, 1], [1, 0], [2, 1],]
     spawners = []
 
     for n in range(number_of_nodes):
@@ -95,5 +98,6 @@ def startNodes():
 
     launch.shutdown()
 
+
 if __name__ == "__main__":
-    startNodes()
+    start_nodes()
