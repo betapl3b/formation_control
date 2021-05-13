@@ -17,9 +17,9 @@ LAPLACIANS = {
     ],
     "0": []
 }
-LAMBDA0 = 0.5
+LAMBDA0 = 0.3
 SIGMA0 = 0.03
-E = 1
+E = 0.5
 GAZEBO_PATH = "/opt/ros/melodic/share/gazebo_ros/launch/empty_world.launch"
 WORLD_PATH = "/home/beta/catkin_ws/src/project_simulation/worlds/ml_plugin_room.world"
 SPAWNER_LAUNCH = '/home/beta/catkin_ws/src/project_simulation/launch/spawner.launch'

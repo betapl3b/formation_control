@@ -7,30 +7,15 @@ for i = 1:size(filelist,1)
 end
 for i = 1:size(csvlist, 1)
    if contains(csvlist(i), 'comp')
-       get_comp(csvlist(i));
-   else
-       if contains(csvlist(i), 'robot0_vel')
+       if contains(csvlist(i), '0_to')
            continue
        end
-       get_xyt(csvlist(i));
+       get_comp(csvlist(i));
+   else
+       continue
    end
 end
 
-function [t, x, y] = get_xyt(file)
-    arr = csvread(file, 1);
-    filename = char(file);
-    filename = filename(1:end-4);
-    path = 'graph/' + string(filename) + '.png';
-    t = arr(:,1) - arr(1,1);
-    x = arr(:,2);
-    y = arr(:,3);
-    h = figure('Visible','off');
-    plot(t,x);
-    xlabel('t, c')
-    ylabel('\dot{\xi}', 'Interpreter','latex')
-    print(h,'-dpng', path);
-    close(h);
-end
 
 function [t, dk, k, dxi, xi, out] = get_comp(file)
     arr = csvread(file, 1);
