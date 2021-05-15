@@ -15,25 +15,39 @@ LAPLACIANS = {
         [0, 2],
         [2, 0],
     ],
-    "0": []
+    "0": [],
+    "4": [
+[0, 2, 2.82427, 2,],
+[2, 0, 2, 0,],
+[2.82427, 2, 0, 2,],
+[2, 0, 2, 0,],
+
+
+    ],
+    "5": [
+        [0, 2.828427, 2.828427, 2.828427, 2.828427, ],
+        [2.828427, 0, 4, 4, 0, ],
+        [2.828427, 4, 0, 0, 4, ],
+        [2.828427, 4, 0, 0, 4, ],
+        [2.828427, 0, 4, 4, 0, ],
+
+    ],
+    "6": [
+        [0, 2.48, 2.48, 4, 4, 2.48],
+        [2.48, 0, 4, 2.48, 0, 0],
+        [2.48, 4, 0, 0, 2.48, 0],
+        [4, 2.48, 0, 0, 0, 2.48],
+        [4, 0, 2.48, 0, 0, 0],
+        [2.48, 0, 0, 2.48, 0, 0],
+    ]
 }
-LAMBDA0 = 0.3
-SIGMA0 = 0.03
+LAMBDA0 = 0.05
+SIGMA0 = 0.02
 E = 0.5
 GAZEBO_PATH = "/opt/ros/melodic/share/gazebo_ros/launch/empty_world.launch"
-WORLD_PATH = "/home/beta/catkin_ws/src/project_simulation/worlds/ml_plugin_room.world"
+# WORLD_PATH = "/home/beta/catkin_ws/src/project_simulation/worlds/ml_plugin_room.world"
+WORLD_PATH = "/home/beta/catkin_ws/src/project_simulation/worlds/slow_time.world"
 SPAWNER_LAUNCH = '/home/beta/catkin_ws/src/project_simulation/launch/spawner.launch'
-
-process_running = True
-
-
-class ProcessListener(roslaunch.pmon.ProcessListener):
-    global process_running
-
-    def process_died(self, name, exit_code):
-        global process_running
-        process_running = False
-        rospy.logwarn("%s died with code %s", name, exit_code)
 
 
 def start_nodes():
@@ -76,6 +90,7 @@ def start_nodes():
     rospy.init_node('The_creator', anonymous=True)
     coords = list(zip(sample(range(0,number_of_nodes*2,1), number_of_nodes), sample(range(0,number_of_nodes*2,1), number_of_nodes)))
     # coords = [[1, 1], [0, 1], [1, 0], [2, 1],]
+    coords =  [[0, 0], [-2, 2], [-2, -2], [2, -2], [0, -4], [-4, 4]]
     spawners = []
 
     for n in range(number_of_nodes):
@@ -83,7 +98,7 @@ def start_nodes():
 
     launch.parent = roslaunch.parent.ROSLaunchParent(uuid, spawners)
     launch.start()
-    time.sleep(5)
+    time.sleep(4)
     for n in range(number_of_nodes):
         controller = roslaunch.core.Node(
             'project_simulation', 'controller_creator.py',
@@ -93,7 +108,7 @@ def start_nodes():
         launch.launch(controller)
 
     print("All done. Stopping roslaunch.")
-    while process_running:
+    while True:
         continue
 
     launch.shutdown()

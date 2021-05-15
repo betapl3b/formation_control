@@ -7,12 +7,10 @@ import rospy
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from numpy import array as arr, linalg
-# from tf.transformations import euler_from_quaternion
 import math
 
-# ROS = False
-ROS = True
-LOG_COMP = False
+from transformations import euler_from_quaternion
+
 LOG_PATH = '/home/beta/catkin_ws/src/project_simulation/logs/'
 
 
@@ -23,8 +21,6 @@ class Integrator(object):
         self.prev_out = init_cond
         self.prev_time = init_time
         self.tf = control.tf([1], [1, 0])
-        # if parent:
-        # print(parent.parent.name, ' Integrator ', self.name, ' for ', parent.name, ' created!')
 
     def update_state(self, inp, t):
         time, out = control.forced_response(self.tf, U=inp, T=[self.prev_time, t], X0=self.prev_out)
@@ -37,7 +33,7 @@ class Integrator(object):
 
 
 class Compensator(object):
-    def __init__(self, lambda0, sigma0, e, init_time, name=None, debug=False, parent=None):
+    def __init__(self, lambda0, sigma0, e, init_time, name=None, parent=None):
         self.name = name
         self.parent = parent
         self.xi_int = Integrator(0, init_time, parent=self, name='xi')
@@ -65,72 +61,103 @@ class Compensator(object):
 
 
 class Robot(object):
-    def __init__(self, robot_id, laplacian=None, debug=False, controlled=True, only_neigbours=False):
-
-        # Name
+    def __init__(self, robot_id, laplacian=None):
+        # Robot's ID
         self.robot_id = robot_id
+        # Robot's name
         self.name = 'robot{}'.format(self.robot_id)
-        self.debug = debug
+        # Velocity publisher
         self.publisher = rospy.Publisher('/{}/cmd_vel'.format(self.name), Twist, queue_size=2)
+        # Robot's position
         self.position_x = 0
         self.position_y = 0
         self.orientation = 0
-        self.err_pubs = []
+        # Postition logging
         self.pos_logger = setup_logger(f'{self.name}_pos', f'{LOG_PATH}{self.name}_pos.csv')
         self.pos_logger.debug('time,pos_x,pos_y')
+        # Velocity logging
         self.vel_logger = setup_logger(f'{self.name}_vel', f'{LOG_PATH}{self.name}_vel.csv')
         self.vel_logger.debug('time,vel_x,vel_y')
 
-        self.logger_dict = {}
+        # Position subscriber
         self.subscriber = rospy.Subscriber('/{}/odom'.format(self.name), Odometry, self.update_state_odom, queue_size=1)
-        self.controlled = controlled
-        self.speed_model_x = RobotModel(0, rospy.get_time(), parent=self, name=f'{self.name}_x_vel')
-        self.speed_model_y = RobotModel(0, rospy.get_time(), parent=self, name=f'{self.name}_y_vel')
 
-        # Service
-        if not only_neigbours:
-            self.distances = laplacian[robot_id] if laplacian is not None else None
-        else:
-            self.distances = laplacian
-            for i, d in enumerate(self.distances):
-                if d != 0:
-                    self.logger_dict.update(
-                        {i: setup_logger(f'{self.name}_err_{i}', f'{LOG_PATH}{self.name}_err{i}.csv')}
-                    )
-                    self.logger_dict[i].debug("time,err")
+        # Robot's model declaration
+        self.speed_model_x = None
+        self.speed_model_y = None
+
+        # Logging and neighbour position dictionaries
+        self.logger_dict = {}
+        self.sub_dict = {}
+        self.npos_dict = {}
+
+        # Desired positions list
+        self.distances = laplacian
+        for i, d in enumerate(self.distances):
+            if d != 0:
+                # Error logger
+                self.logger_dict.update(
+                    {i: setup_logger(f'{self.name}_err_{i}', f'{LOG_PATH}{self.name}_err{i}.csv')}
+                )
+                # Fill position dictionaries
+                npos = rospy.wait_for_message(f'/robot{i}/odom', Odometry)
+                self.npos_dict[i] = [npos.pose.pose.position.x, npos.pose.pose.position.y]
+                # Fill position subscriber dictionaries
+                self.sub_dict.update(
+                    {i: rospy.Subscriber(f'/robot{i}/odom', Odometry, self.update_npos, (i), queue_size=1)}
+                )
+                self.logger_dict[i].debug("time,err")
+
+    def init_model(self, time):
+        """Initialize robot x,y - models"""
+        self.speed_model_x = RobotModel(0, time, parent=self, name=f'{self.name}_x_vel')
+        self.speed_model_y = RobotModel(0, time, parent=self, name=f'{self.name}_y_vel')
 
     def update_state_odom(self, response):
-        self.position_x = response.pose.pose.position.x
-        self.position_y = response.pose.pose.position.y
+        """Update robot's position from subscriber callback"""
+        self.position_x = response.pose.pose.position.x if abs(response.pose.pose.position.x) > 0.0001 else 0
+        self.position_y = response.pose.pose.position.y if abs(response.pose.pose.position.y) > 0.0001 else 0
         self.orientation = [response.pose.pose.orientation.x, response.pose.pose.orientation.y,
                             response.pose.pose.orientation.z, response.pose.pose.orientation.w]
         self.pos_logger.debug(f'{rospy.get_time()},{self.position_x},{self.position_y}')
 
+    def update_npos(self, response, args):
+        """Update neighbour's position"""
+        self.npos_dict[args] = [response.pose.pose.position.x if abs(response.pose.pose.position.x) > 0.0001 else 0,
+                                response.pose.pose.position.y if abs(response.pose.pose.position.y) > 0.0001 else 0]
+
     def get_complex_error(self, neighbour_index):
+        """Get error value from temprorary subscriber"""
         npos = rospy.wait_for_message(f'/robot{neighbour_index}/odom', Odometry)
         npos_arr = arr([npos.pose.pose.position.x, npos.pose.pose.position.y])
         pos_arr = arr([self.position_x, self.position_y])
         cur_dis = linalg.norm(pos_arr - npos_arr)
         err = (cur_dis ** 2 - self.distances[neighbour_index] ** 2) * (npos_arr - pos_arr)
-        self.logger_dict[neighbour_index].debug(f'{rospy.get_time()},{cur_dis-self.distances[neighbour_index]}')
+        self.logger_dict[neighbour_index].debug(f'{rospy.get_time()},{cur_dis - self.distances[neighbour_index]}')
+
+        return err
+
+    def get_complex_error_sub(self, neighbour_index):
+        """Get error value from constant subscriber"""
+        npos_arr = arr([self.npos_dict[neighbour_index][0], self.npos_dict[neighbour_index][1]])
+        pos_arr = arr([self.position_x, self.position_y])
+        cur_dis = linalg.norm(pos_arr - npos_arr)
+        err = (cur_dis ** 2 - self.distances[neighbour_index] ** 2) * (npos_arr - pos_arr)
+        self.logger_dict[neighbour_index].debug(f'{rospy.get_time()},{cur_dis - self.distances[neighbour_index]}')
 
         return err
 
     def set_vel(self, velocity):
-        if self.debug:
-            print(self.name, ' - setting velocity to: ', velocity.linear.x, '; ', velocity.linear.y)
-        if self.controlled and self.robot_id != 0:
-            # velocity.linear.x = limit_value(velocity.linear.x, 0.5)
-            # velocity.linear.y = limit_value(velocity.linear.y, 0.5)
+        """Publish robot's velocity"""
+        if self.robot_id != 0:
             velocity.linear.x = self.speed_model_x.update_state(
                 velocity.linear.x, rospy.get_time())
             velocity.linear.y = self.speed_model_y.update_state(
                 velocity.linear.y, rospy.get_time())
 
-            # (roll, pitch, yaw) = euler_from_quaternion(self.orientation)
-            # if abs(0-yaw) > 0.00001:
-            #     velocity.linear.x = velocity.linear.x * math.cos(yaw)
-            #     velocity.linear.y = velocity.linear.y * math.sin(yaw)
+            (roll, pitch, yaw) = euler_from_quaternion(self.orientation)
+            velocity.linear.x = velocity.linear.x * math.cos(-roll)
+            velocity.linear.y = velocity.linear.y * math.sin(-roll + math.pi / 2)
 
             self.publisher.publish(velocity)
             self.vel_logger.debug(f'{rospy.get_time()},{velocity.linear.x},{velocity.linear.y}')
@@ -150,15 +177,11 @@ class RobotModel(object):
         self.prev_time = init_time
         self.T = 0.1
         self.tf = control.tf([1], [self.T, 1])
-        self.history = []
-        # if parent:
-        # print(parent.parent.name, ' Integrator ', self.name, ' for ', parent.name, ' created!')
 
     def update_state(self, inp, t):
         time, out = control.forced_response(self.tf, U=inp, T=[self.prev_time, t], X0=self.prev_out * self.T)
         self.prev_time = time[-1]
         self.prev_out = out[-1]
-        self.history.append(self.prev_out)
         return limit_value(self.prev_out, 1.0)
 
     def get_state(self):
@@ -176,3 +199,6 @@ def setup_logger(name, log_file, level=logging.DEBUG):
     logger.addHandler(handler)
 
     return logger
+
+
+global_logger = setup_logger('vel_pos_comp_robot_logger', f'{LOG_PATH}main.csv')
