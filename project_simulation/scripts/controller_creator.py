@@ -48,6 +48,6 @@ def node_creator(robot):
 
 if __name__ == "__main__":
     rospy.init_node(f'robot_{NUMBER}_controller')
-    robot = control_utils.Robot(NUMBER, DISTANCES)
+    robot = control_utils.Robot(NUMBER, DISTANCES, ext=EXTERNAL)
     node_creator(robot)
     rospy.spin()

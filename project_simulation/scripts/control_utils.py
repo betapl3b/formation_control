@@ -61,11 +61,18 @@ class Compensator(object):
 
 
 class Robot(object):
-    def __init__(self, robot_id, laplacian=None):
+    def __init__(self, robot_id, laplacian=None, ext=False):
+        """Robot object
+        laplacian: list - Part of Laplacian. Row for specified robot ID
+        ext: bool - External indignation in model
+        robot_id: int - ID
+        """
         # Robot's ID
         self.robot_id = robot_id
         # Robot's name
         self.name = 'robot{}'.format(self.robot_id)
+        # External indignation True/False
+        self.ext = ext
         # Velocity publisher
         self.publisher = rospy.Publisher('/{}/cmd_vel'.format(self.name), Twist, queue_size=2)
         # Robot's position
@@ -78,6 +85,10 @@ class Robot(object):
         # Velocity logging
         self.vel_logger = setup_logger(f'{self.name}_vel', f'{LOG_PATH}{self.name}_vel.csv')
         self.vel_logger.debug('time,vel_x,vel_y')
+        # Ext logging
+        if self.ext:
+            self.ext_logger = setup_logger(f'{self.name}_ext', f'{LOG_PATH}{self.name}_ext.csv')
+            self.ext_logger.debug('time,ext')
 
         # Position subscriber
         self.subscriber = rospy.Subscriber('/{}/odom'.format(self.name), Odometry, self.update_state_odom, queue_size=1)
@@ -150,15 +161,26 @@ class Robot(object):
     def set_vel(self, velocity):
         """Publish robot's velocity"""
         if self.robot_id != 0:
+            # External
+            if self.ext:
+                t = rospy.get_time()
+                ext = 0.1*math.sin(t*self.robot_id-self.robot_id)
+                self.ext_logger.debug(f'{rospy.get_time()},{ext}')
+                velocity.linear.x += ext
+                velocity.linear.y += ext
+
+            # Send control to dynamic model
             velocity.linear.x = self.speed_model_x.update_state(
                 velocity.linear.x, rospy.get_time())
             velocity.linear.y = self.speed_model_y.update_state(
                 velocity.linear.y, rospy.get_time())
 
+            # Orientation correction
             (roll, pitch, yaw) = euler_from_quaternion(self.orientation)
             velocity.linear.x = velocity.linear.x * math.cos(-roll)
             velocity.linear.y = velocity.linear.y * math.sin(-roll + math.pi / 2)
 
+            # Publish velocity
             self.publisher.publish(velocity)
             self.vel_logger.debug(f'{rospy.get_time()},{velocity.linear.x},{velocity.linear.y}')
 

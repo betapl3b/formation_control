@@ -41,9 +41,9 @@ LAPLACIANS = {
         [2.48, 0, 0, 2.48, 0, 0],
     ]
 }
-LAMBDA0 = 0.05
-SIGMA0 = 0.02
-E = 0.5
+LAMBDA0 = 0.08
+SIGMA0 = 0.05
+E = 2
 GAZEBO_PATH = "/opt/ros/melodic/share/gazebo_ros/launch/empty_world.launch"
 # WORLD_PATH = "/home/beta/catkin_ws/src/project_simulation/worlds/ml_plugin_room.world"
 WORLD_PATH = "/home/beta/catkin_ws/src/project_simulation/worlds/slow_time.world"

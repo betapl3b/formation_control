@@ -45,14 +45,15 @@
           <geometry>
             <plane>
               <normal>0 0 1</normal>
-              <size>100 100</size>
+              <size>500 100</size>
             </plane>
           </geometry>
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/CeilingTiled</name>
             </script>
+            <ambient>0.180392 0.203922 0.211765 1</ambient>
           </material>
         </visual>
         <self_collide>0</self_collide>
@@ -66,8 +67,8 @@
     <atmosphere type='adiabatic'/>
     <physics name='default_physics' default='0' type='ode'>
       <max_step_size>0.001</max_step_size>
-      <real_time_factor>0.5</real_time_factor>
-      <real_time_update_rate>500</real_time_update_rate>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
     </physics>
     <scene>
       <ambient>0.4 0.4 0.4 1</ambient>
@@ -82,10 +83,10 @@
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
     <state world_name='default'>
-      <sim_time>3213 572000000</sim_time>
-      <real_time>73 44529379</real_time>
-      <wall_time>1620758102 661748469</wall_time>
-      <iterations>72801</iterations>
+      <sim_time>0 0</sim_time>
+      <real_time>0 0</real_time>
+      <wall_time>0 0</wall_time>
+      <iterations>0</iterations>
       <model name='ground_plane'>
         <pose frame=''>0 0 0 0 -0 0</pose>
         <scale>1 1 1</scale>
